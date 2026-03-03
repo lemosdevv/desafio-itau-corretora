@@ -3,8 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ItauCorretora.Desafio.Models
 {
-    [Table("Actions")]
-    public class Action
+    [Table("Stocks")]
+    public class Stock
     {
         [Key]
         public int Id { get; set; }

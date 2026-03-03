@@ -1,4 +1,3 @@
-using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -16,10 +15,12 @@ namespace ItauCorretora.Desafio.Models
         [Key]
         public int Id { get; set; }
 
-        [Required]
-        [ForeignKey("Account")]
         public int AccountId { get; set; }
-        public Account Account { get; set; } = null!;
+
+        [Required]
+        [ForeignKey("Stock")]
+        public int StockId { get; set; }
+        public Stock Stock { get; set; } = null!;
 
         [Required]
         public DateTime Date { get; set; }

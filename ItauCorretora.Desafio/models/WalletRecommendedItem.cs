@@ -15,9 +15,9 @@ namespace ItauCorretora.Desafio.Models
         public RecommendedWallet RecommendedWallet { get; set; } = null!;
 
         [Required]
-        [ForeignKey("Action")]
-        public int ActionId { get; set; }
-        public Action Action { get; set; } = null!;
+        [ForeignKey("Stock")]
+        public int StockId { get; set; }
+        public Stock Stock { get; set; } = null!;
 
         [Required]
         [Column(TypeName = "decimal(5,2)")] 
