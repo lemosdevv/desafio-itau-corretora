@@ -15,6 +15,8 @@ namespace ItauCorretora.Desafio.Models
         Executed,
         Cancelled,
         Error,
+        Rejected,
+        PartiallyExecuted,
         WaitingForExecution
     }
 
