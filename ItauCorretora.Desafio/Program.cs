@@ -11,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<ICotahistParserService, CotahistParserService>();
 
 // Kafka
 builder.Services.AddSingleton<IKafkaProducer, KafkaProducer>();

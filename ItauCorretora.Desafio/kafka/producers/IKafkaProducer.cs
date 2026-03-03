@@ -32,12 +32,12 @@ public class KafkaProducer : IKafkaProducer
             var deliveryResult = await _producer.ProduceAsync(topic, kafkaMessage);
             
             _logger.LogInformation(
-                "Mensagem entregue ao tópico {Topic} na partição {Partition}, offset {Offset}",
+                "Message delivered to the topic {Topic} on partition {Partition}, offset {Offset}",
                 deliveryResult.Topic, deliveryResult.Partition, deliveryResult.Offset);
         }
         catch (ProduceException<Null, string> ex)
         {
-            _logger.LogError(ex, "Erro ao produzir mensagem para o tópico {Topic}", topic);
+            _logger.LogError(ex, "Error producing message for the topic {Topic}", topic);
             throw;
         }
     }

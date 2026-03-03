@@ -25,7 +25,7 @@ public class PurchaseController : ControllerBase
         if (!result.Success)
             return BadRequest(result);
 
-        await _kafkaProducer.ProduceAsync("ordens-criadas", new
+        await _kafkaProducer.ProduceAsync("orders-creates", new
         {
             CustomerId = customerId,
             Date = DateTime.Now,
