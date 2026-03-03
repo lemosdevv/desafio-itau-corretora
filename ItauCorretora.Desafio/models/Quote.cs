@@ -1,29 +1,31 @@
-
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ItauCorretora.Desafio.Models
+namespace ItauCorretora.Desafio.Models;
+
+[Table("Quotes")]
+public class Quote
 {
-    [Table("Quotes")]
-    public class Quote
-    {
-        [Key]
-        public int Id { get; set; }
+    [Key]
+    public int Id { get; set; }
 
-        [Required]
-        [ForeignKey("Stock")]
-        public int StockId { get; set; }
-        public Stock Stock { get; set; } = null!;
+    public int StockId { get; set; }
+    public Stock Stock { get; set; } = null!;
 
-        [Required]
-        public DateTime Date { get; set; }
+    public DateTime Date { get; set; }
 
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal OpenPrice { get; set; }
+    [Column(TypeName = "decimal(18,4)")]
+    public decimal OpenPrice { get; set; }
 
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal ClosePrice { get; set; }
+    [Column(TypeName = "decimal(18,4)")]
+    public decimal ClosePrice { get; set; }
 
-        // Outros campos se necessário: minimo, maximo, volume
-    }
+    [Column(TypeName = "decimal(18,4)")]
+    public decimal HighPrice { get; set; }
+
+    [Column(TypeName = "decimal(18,4)")]
+    public decimal LowPrice { get; set; }
+
+    [Column(TypeName = "decimal(18,4)")]
+    public decimal Volume { get; set; } 
 }
