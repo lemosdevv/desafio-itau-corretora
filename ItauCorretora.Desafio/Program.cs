@@ -1,4 +1,7 @@
 using ItauCorretora.Desafio.Data;
+using ItauCorretora.Desafio.Kafka.Producers;
+using ItauCorretora.Desafio.Services.Implementations;
+using ItauCorretora.Desafio.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,6 +10,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Kafka
+builder.Services.AddSingleton<IKafkaProducer, KafkaProducer>();
+builder.Services.AddScoped<IPurchaseEngineService, PurchaseEngineService>();
 
 // Configurar DbContext com MySQL
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
