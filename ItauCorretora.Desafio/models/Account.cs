@@ -18,6 +18,18 @@ namespace ItauCorretora.Desafio.Models
         public int CustomerId { get; set; }
         public Customer Customer { get; set; } = null!;
 
+        public void Debit(decimal amount)
+            {
+                if (Balance < amount)
+                    throw new InvalidOperationException("Insufficient funds.");
+                Balance -= amount;
+            }
+
+            public void Credit(decimal amount)
+            {
+                Balance += amount;
+            }
+
         // Account movements
         public ICollection<AccountMovement> Movements { get; set; } = new List<AccountMovement>();
     }
