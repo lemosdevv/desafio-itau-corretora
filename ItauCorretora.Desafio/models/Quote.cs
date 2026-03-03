@@ -19,10 +19,10 @@ namespace ItauCorretora.Desafio.Models
         public DateTime Date { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
-        public decimal PriceOpening { get; set; }
+        public decimal OpenPrice { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
-        public decimal PriceClosing { get; set; }
+        public decimal ClosePrice { get; set; }
 
         // Outros campos se necessário: minimo, maximo, volume
     }

@@ -15,9 +15,9 @@ namespace ItauCorretora.Desafio.Models
         [StringLength(100)]
         public string Name { get; set; } = string.Empty;
 
-        public DateTime DateStart { get; set; }
+        public DateTime StartDate { get; set; }
 
-        public DateTime? DateEnd { get; set; } 
+        public DateTime? EndDate { get; set; } 
 
         public ICollection<WalletRecommendedItem> Itens { get; set; } = new List<WalletRecommendedItem>();
     }

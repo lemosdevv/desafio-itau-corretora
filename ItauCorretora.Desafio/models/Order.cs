@@ -14,7 +14,8 @@ namespace ItauCorretora.Desafio.Models
         Pending,
         Executed,
         Cancelled,
-        Error
+        Error,
+        WaitingForExecution
     }
 
     [Table("Orders")]
