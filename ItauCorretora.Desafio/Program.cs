@@ -12,6 +12,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<ICotahistParserService, CotahistParserService>();
+builder.Services.AddScoped<IRebalancementService, RebalancementService>();
 
 // Kafka
 builder.Services.AddSingleton<IKafkaProducer, KafkaProducer>();
