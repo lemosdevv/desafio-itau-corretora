@@ -3,6 +3,7 @@ using ItauCorretora.Desafio.Kafka.Consumers;
 using ItauCorretora.Desafio.Kafka.Producers;
 using ItauCorretora.Desafio.Services.Implementations;
 using ItauCorretora.Desafio.Services.Interfaces;
+using ItauCorretora.Desafio.Workers;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +14,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<ICotahistParserService, CotahistParserService>();
 builder.Services.AddScoped<IRebalancementService, RebalancementService>();
+builder.Services.AddHostedService<RebalancementWorker>();
 
 // Kafka
 builder.Services.AddSingleton<IKafkaProducer, KafkaProducer>();
