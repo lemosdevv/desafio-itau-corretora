@@ -12,6 +12,7 @@ namespace ItauCorretora.Desafio.Kafka.Consumers;
 public class OrderExecutedConsumer : KafkaConsumerBase<OrderExecutedMessage>
 {
     private readonly IServiceScopeFactory _scopeFactory;
+    private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
 
     public OrderExecutedConsumer(
         IConfiguration configuration,
@@ -19,6 +20,7 @@ public class OrderExecutedConsumer : KafkaConsumerBase<OrderExecutedMessage>
         IServiceScopeFactory scopeFactory)
         : base(configuration, logger, "orders-executed")
     {
+        _logger.LogInformation("Inicializando OrderExecutedConsumer...");
         _scopeFactory = scopeFactory;
     }
 
@@ -26,7 +28,7 @@ public class OrderExecutedConsumer : KafkaConsumerBase<OrderExecutedMessage>
     {
         try
         {
-            var orderExecuted = JsonSerializer.Deserialize<OrderExecutedMessage>(message);
+            var orderExecuted = JsonSerializer.Deserialize<OrderExecutedMessage>(message, _jsonOptions);
             if (orderExecuted == null)
             {
                 _logger.LogWarning("Invalid message received: {Message}", message);
@@ -53,7 +55,7 @@ public class OrderExecutedConsumer : KafkaConsumerBase<OrderExecutedMessage>
             }
 
             // Use transactions to ensure consistency.
-            using var transaction = await context.Database.BeginTransactionAsync();
+            await using var transaction = await context.Database.BeginTransactionAsync(stoppingToken);
 
             try
             {
@@ -66,7 +68,7 @@ public class OrderExecutedConsumer : KafkaConsumerBase<OrderExecutedMessage>
 
                 // Update customer status
                 var position = await context.CustomerPositions
-                    .FirstOrDefaultAsync(p => p.CustomerId == order.CustomerId && p.StockId == order.StockId);
+                    .FirstOrDefaultAsync(p => p.CustomerId == order.CustomerId && p.StockId == order.StockId, stoppingToken);
 
                 if (order.Type == OrderType.Purchase)
                 {
@@ -162,16 +164,16 @@ public class OrderExecutedConsumer : KafkaConsumerBase<OrderExecutedMessage>
                     }
                 }
 
-                await context.SaveChangesAsync();
-                await transaction.CommitAsync();
+                await context.SaveChangesAsync(stoppingToken);
+                await transaction.CommitAsync(stoppingToken);
 
                 _logger.LogInformation("Order {OrderId} processed successfully. Balance updated.", orderExecuted.OrderId);
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync();
+                await transaction.RollbackAsync(stoppingToken);
                 _logger.LogError(ex, "Error processing order {OrderId}", orderExecuted.OrderId);
-                throw; // Re-throw to prevent the message from being committed (depending on the commit strategy).
+                throw; // Re-throw to prevent the message from being committed
             }
         }
         catch (JsonException ex)
@@ -192,10 +194,11 @@ public class OrderExecutedConsumer : KafkaConsumerBase<OrderExecutedMessage>
         _ => StatusOrder.Error
     };
 
-    public class OrderExecutedMessage{
+    public class OrderExecutedMessage
+    {
         public int OrderId { get; set; }
-        public string Status { get; set; } = string.Empty; // EXECUTED, PARTIALLY_EXECUTED, REJECTED
+        public string Status { get; set; } = string.Empty;
         public int? ExecutedQuantity { get; set; }
         public decimal? ExecutedPrice { get; set; }
-        }
+    }
 }

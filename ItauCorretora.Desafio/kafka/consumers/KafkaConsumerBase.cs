@@ -29,40 +29,40 @@ public abstract class KafkaConsumerBase<T> : BackgroundService where T : class
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+{
+    try
     {
         _consumer.Subscribe(_topic);
+        _logger.LogInformation("Kafka consumer inscrito no tópico {Topic}", _topic);
 
-        try
+        while (!stoppingToken.IsCancellationRequested)
         {
-            while (!stoppingToken.IsCancellationRequested)
+            try
             {
-                try
-                {
-                    var consumeResult = _consumer.Consume(stoppingToken);
-                    
-                    _logger.LogInformation("Message received from topic {Topic} at partition {Partition}, offset {Offset}", 
-                        consumeResult.Topic, consumeResult.Partition, consumeResult.Offset);
-
-                    await ProcessMessageAsync(consumeResult.Message.Value, stoppingToken);
-
-                    // Commit after successful processing
-                    _consumer.Commit(consumeResult);
-                }
-                catch (ConsumeException ex)
-                {
-                    _logger.LogError(ex, "Error consuming message from topic {Topic}", _topic);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error processing message from topic {Topic}", _topic);
-                }
+                var consumeResult = _consumer.Consume(stoppingToken);
+                _logger.LogInformation("Mensagem recebida do tópico {Topic}...", consumeResult.Topic);
+                await ProcessMessageAsync(consumeResult.Message.Value, stoppingToken);
+                _consumer.Commit(consumeResult);
+            }
+            catch (ConsumeException ex)
+            {
+                _logger.LogError(ex, "Erro ao consumir mensagem do tópico {Topic}", _topic);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao processar mensagem do tópico {Topic}", _topic);
             }
         }
-        finally
-        {
-            _consumer.Close();
-        }
     }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Falha crítica no Kafka consumer para o tópico {Topic}", _topic);
+    }
+    finally
+    {
+        _consumer.Close();
+    }
+}
 
     protected abstract Task ProcessMessageAsync(string message, CancellationToken stoppingToken);
 
