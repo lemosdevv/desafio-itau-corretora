@@ -22,7 +22,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IPurchaseEngineService, PurchaseEngineService>();
 builder.Services.AddScoped<IRebalancementService, RebalancementService>();
 builder.Services.AddSingleton<IKafkaProducer, KafkaProducer>();
-//builder.Services.AddHostedService<OrderExecutedConsumer>();
 builder.Services.AddHostedService<RebalancementWorker>();
 
 var app = builder.Build();
