@@ -96,7 +96,7 @@ public class OrderExecutedConsumer : KafkaConsumerBase<OrderExecutedMessage>
                         var executedTotal = executedQuantity * order.Price;
                         var refund = originalTotal - executedTotal;
 
-                        if (refund > 0)
+                        if (refund > 0 && order.Customer?.Account != null)
                         {
                             order.Customer.Account.Credit(refund);
                             
@@ -136,19 +136,22 @@ public class OrderExecutedConsumer : KafkaConsumerBase<OrderExecutedMessage>
                             position.Quantity -= executedQuantity;
 
                             // Credit the value to the account
-                            order.Customer.Account.Credit(executedValue);
-
-                            // Record credit transaction
-                            var creditMovement = new AccountMovement
+                            if (order.Customer?.Account != null)
                             {
-                                AccountId = order.Customer.Account.Id,
-                                Date = DateTime.Now,
-                                Type = TipoMovimento.Credito,
-                                Value = executedValue,
-                                Description = $"Sale of {executedQuantity} {order.Stock.Code}",
-                                OrderId = order.Id
-                            };
-                            context.AccountMovements.Add(creditMovement);
+                                order.Customer.Account.Credit(executedValue);
+
+                                // Record credit transaction
+                                var creditMovement = new AccountMovement
+                                {
+                                    AccountId = order.Customer.Account.Id,
+                                    Date = DateTime.Now,
+                                    Type = TipoMovimento.Credito,
+                                    Value = executedValue,
+                                    Description = $"Sale of {executedQuantity} {order.Stock.Code}",
+                                    OrderId = order.Id
+                                };
+                                context.AccountMovements.Add(creditMovement);
+                            }
 
                             // If the position is depleted, we can remove it or keep it with quantity 0
                             if (position.Quantity == 0)
