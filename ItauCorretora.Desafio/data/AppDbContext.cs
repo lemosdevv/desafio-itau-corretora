@@ -82,7 +82,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Order>()
             .HasIndex(o => o.Status);
 
-        // AccountMovement -> Order (opcional)
+        // AccountMovement -> Order 
         modelBuilder.Entity<AccountMovement>()
             .HasOne(m => m.Order)
             .WithMany()

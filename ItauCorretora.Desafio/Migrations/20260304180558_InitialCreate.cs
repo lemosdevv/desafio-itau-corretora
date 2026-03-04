@@ -41,8 +41,8 @@ namespace ItauCorretora.Desafio.Migrations
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     Name = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    DateStart = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    DateEnd = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                    StartDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "datetime(6)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -184,8 +184,11 @@ namespace ItauCorretora.Desafio.Migrations
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     StockId = table.Column<int>(type: "int", nullable: false),
                     Date = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    PriceOpening = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    PriceClosing = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                    OpenPrice = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
+                    ClosePrice = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
+                    HighPrice = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
+                    LowPrice = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
+                    Volume = table.Column<decimal>(type: "decimal(18,4)", nullable: false)
                 },
                 constraints: table =>
                 {

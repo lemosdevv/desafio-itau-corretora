@@ -17,10 +17,9 @@ namespace ItauCorretora.Desafio.Models
 
         public int AccountId { get; set; }
 
-        [Required]
         [ForeignKey("Stock")]
-        public int StockId { get; set; }
-        public Stock Stock { get; set; } = null!;
+        public int? StockId { get; set; }
+        public Stock? Stock { get; set; } = null!;
 
         [Required]
         public DateTime Date { get; set; }

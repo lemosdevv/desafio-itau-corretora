@@ -3,6 +3,7 @@ using System;
 using ItauCorretora.Desafio.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ItauCorretora.Desafio.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260304183836_MakeStockIdNullableInAccountMovement")]
+    partial class MakeStockIdNullableInAccountMovement
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -59,6 +62,7 @@ namespace ItauCorretora.Desafio.Migrations
                         .HasColumnType("int");
 
                     b.Property<int?>("StockId")
+                        .IsRequired()
                         .HasColumnType("int");
 
                     b.Property<int>("Type")
@@ -328,7 +332,9 @@ namespace ItauCorretora.Desafio.Migrations
 
                     b.HasOne("ItauCorretora.Desafio.Models.Stock", "Stock")
                         .WithMany()
-                        .HasForeignKey("StockId");
+                        .HasForeignKey("StockId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Order");
 

@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ItauCorretora.Desafio.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260303001629_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260304184611_MakeStockIdNullable")]
+    partial class MakeStockIdNullable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -61,7 +61,7 @@ namespace ItauCorretora.Desafio.Migrations
                     b.Property<int?>("OrderId")
                         .HasColumnType("int");
 
-                    b.Property<int>("StockId")
+                    b.Property<int?>("StockId")
                         .HasColumnType("int");
 
                     b.Property<int>("Type")
@@ -206,17 +206,26 @@ namespace ItauCorretora.Desafio.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
+                    b.Property<decimal>("ClosePrice")
+                        .HasColumnType("decimal(18,4)");
+
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<decimal>("PriceClosing")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<decimal>("HighPrice")
+                        .HasColumnType("decimal(18,4)");
 
-                    b.Property<decimal>("PriceOpening")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<decimal>("LowPrice")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<decimal>("OpenPrice")
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<int>("StockId")
                         .HasColumnType("int");
+
+                    b.Property<decimal>("Volume")
+                        .HasColumnType("decimal(18,4)");
 
                     b.HasKey("Id");
 
@@ -232,16 +241,16 @@ namespace ItauCorretora.Desafio.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("DateEnd")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime>("DateStart")
+                    b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime(6)");
 
                     b.HasKey("Id");
 
@@ -322,9 +331,7 @@ namespace ItauCorretora.Desafio.Migrations
 
                     b.HasOne("ItauCorretora.Desafio.Models.Stock", "Stock")
                         .WithMany()
-                        .HasForeignKey("StockId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("StockId");
 
                     b.Navigation("Order");
 
