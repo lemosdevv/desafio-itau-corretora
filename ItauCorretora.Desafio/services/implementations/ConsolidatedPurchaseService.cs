@@ -147,7 +147,7 @@ public class ConsolidatedPurchaseService : IConsolidatedPurchaseService
         }
         result.Orders = finalPurchase;
 
-        // 8. Register master orders (consolidated purchase)
+        // 8. Register master order (consolidated purchase)
         foreach (var order in finalPurchase)
         {
             var stock = await _context.Stocks.FirstOrDefaultAsync(s => s.Code == order.StockCode);
@@ -156,6 +156,7 @@ public class ConsolidatedPurchaseService : IConsolidatedPurchaseService
             var orderEntity = new Order
             {
                 AccountId = masterAccount.Id,
+                CustomerId = null, // <-- adicione esta linha
                 StockId = stock.Id,
                 Date = DateTime.Now,
                 Type = OrderType.Purchase,

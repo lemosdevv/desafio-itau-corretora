@@ -26,7 +26,6 @@ namespace ItauCorretora.Desafio.Models
         [Key]
         public int Id { get; set; }
 
-        [Required]
         [ForeignKey("Customer")]
         public int? CustomerId { get; set; }
         public Customer? Customer { get; set; } = null!;
