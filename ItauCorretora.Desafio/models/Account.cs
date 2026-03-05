@@ -3,6 +3,12 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ItauCorretora.Desafio.Models
 {
+
+    public enum AccountType{
+        Master,
+        Filhote
+}
+
     [Table("Accounts")]
     public class Account
     {
@@ -15,8 +21,11 @@ namespace ItauCorretora.Desafio.Models
 
         // Foreign key to Client
         [ForeignKey("Customer")]
-        public int CustomerId { get; set; }
-        public Customer Customer { get; set; } = null!;
+        public int? CustomerId { get; set; }
+        public Customer? Customer { get; set; } = null!;
+
+        [Required]
+        public AccountType Type { get; set; }
 
         public void Debit(decimal amount)
             {
