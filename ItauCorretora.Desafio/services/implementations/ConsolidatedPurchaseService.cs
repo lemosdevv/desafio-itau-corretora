@@ -58,7 +58,7 @@ public class ConsolidatedPurchaseService : IConsolidatedPurchaseService
             var customerInvestments = new Dictionary<int, decimal>();
             foreach (var customer in activeCustomers)
             {
-                var amount = customer.ValorMensal / 3m;
+                var amount = customer.MonthlyValue / 3m;
                 customerInvestments[customer.Id] = amount;
                 totalAmount += amount;
             }

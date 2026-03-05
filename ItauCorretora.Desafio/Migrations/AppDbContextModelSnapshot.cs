@@ -25,8 +25,15 @@ namespace ItauCorretora.Desafio.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
+                    b.Property<string>("AccountNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
                     b.Property<decimal>("Balance")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<int?>("CustomerId")
                         .HasColumnType("int");
@@ -95,16 +102,20 @@ namespace ItauCorretora.Desafio.Migrations
                         .HasMaxLength(11)
                         .HasColumnType("varchar(11)");
 
-                    b.Property<DateTime>("DateRegister")
-                        .HasColumnType("datetime(6)");
+                    b.Property<string>("Email")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<decimal>("MonthlyValue")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 
-                    b.Property<decimal>("ValorMensal")
-                        .HasColumnType("decimal(65,30)");
+                    b.Property<DateTime>("SubscriptionDate")
+                        .HasColumnType("datetime(6)");
 
                     b.HasKey("Id");
 
