@@ -19,6 +19,11 @@ namespace ItauCorretora.Desafio.Models
         [Column(TypeName = "decimal(18,2)")]
         public decimal Balance { get; set; }
 
+        [MaxLength(20)]
+        public string? AccountNumber { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
         // Foreign key to Client
         [ForeignKey("Customer")]
         public int? CustomerId { get; set; }
