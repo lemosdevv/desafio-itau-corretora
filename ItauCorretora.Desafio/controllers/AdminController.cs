@@ -14,12 +14,18 @@ public class AdminController : ControllerBase
     private readonly AppDbContext _context;
     private readonly IRebalancementService _rebalancementService;
     private readonly ILogger<AdminController> _logger;
+    private readonly IServiceProvider _serviceProvider;
 
-    public AdminController(AppDbContext context, IRebalancementService rebalancementService, ILogger<AdminController> logger)
+    public AdminController(
+        AppDbContext context,
+        IRebalancementService rebalancementService,
+        ILogger<AdminController> logger,
+        IServiceProvider serviceProvider)
     {
         _context = context;
         _rebalancementService = rebalancementService;
         _logger = logger;
+        _serviceProvider = serviceProvider;
     }
 
     // POST: api/admin/wallets
@@ -31,10 +37,9 @@ public class AdminController : ControllerBase
             return BadRequest(new { error = "The basket must contain exactly 5 assets.", code = "INVALID_WALLET_SIZE" });
 
         var totalPercent = request.Items.Sum(i => i.Percentual);
-        if (Math.Abs(totalPercent - 100m) > 0.01m) // tolerância para erros de arredondamento
+        if (Math.Abs(totalPercent - 100m) > 0.01m)
             return BadRequest(new { error = "The sum of percentages must be 100%.", code = "INVALID_PERCENT_SUM" });
 
-        // Verify if all tickers exist
         var tickers = request.Items.Select(i => i.Ticker).ToList();
         var existingStocks = await _context.Stocks.Where(s => tickers.Contains(s.Code)).Select(s => s.Code).ToListAsync();
         var missingTickers = tickers.Except(existingStocks).ToList();
@@ -73,15 +78,20 @@ public class AdminController : ControllerBase
         }
         await _context.SaveChangesAsync();
 
+        // Disparar rebalanceamento em background com um novo escopo
+        var walletId = wallet.Id;
         _ = Task.Run(async () =>
         {
+            using var scope = _serviceProvider.CreateScope();
+            var rebalancementService = scope.ServiceProvider.GetRequiredService<IRebalancementService>();
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<AdminController>>();
             try
             {
-                await _rebalancementService.RebalanceByWalletChangeAsync(wallet.Id);
+                await rebalancementService.RebalanceByWalletChangeAsync(walletId);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while executing rebalancement by basket change");
+                logger.LogError(ex, "Error occurred while executing rebalancement by basket change");
             }
         });
 

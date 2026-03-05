@@ -93,7 +93,7 @@ public class RebalancementService : IRebalancementService
                 if (!quotes.ContainsKey(item.StockId)) continue;
 
                 var currentPrice = quotes[item.StockId].ClosePrice;
-                var targetValue = totalEquity * item.Weight;
+                var targetValue = totalEquity * (item.Weight / 100m); // item.Weight é percentual (ex: 30), então dividir por 100
                 var targetQuantity = (int)(targetValue / currentPrice);
 
                 var currentQuantity = currentPositions.ContainsKey(item.StockId) ? currentPositions[item.StockId].Quantity : 0;
@@ -180,6 +180,126 @@ public class RebalancementService : IRebalancementService
             _logger.LogError(ex, "Error occurred while rebalancing customer {CustomerId}", customerId);
             result.Message = $"Error: {ex.Message}";
             return result;
+        }
+    }
+
+    public async Task RebalanceByWalletChangeAsync(int newWalletId)
+    {
+        var newWallet = await _context.RecommendedWallets
+            .Include(w => w.Itens)
+                .ThenInclude(i => i.Stock)
+            .FirstOrDefaultAsync(w => w.Id == newWalletId);
+
+        if (newWallet == null)
+            throw new ArgumentException("Wallet not found");
+
+        // Get the previous wallet (last deactivated)
+        var previousWallet = await _context.RecommendedWallets
+            .Include(w => w.Itens)
+                .ThenInclude(i => i.Stock)
+            .Where(w => !w.Active && w.EndDate.HasValue)
+            .OrderByDescending(w => w.EndDate)
+            .FirstOrDefaultAsync();
+
+        if (previousWallet == null)
+        {
+            _logger.LogInformation("No previous wallet found. Nothing to rebalance.");
+            return;
+        }
+
+        var oldTickers = previousWallet.Itens.Select(i => i.Stock.Code).ToHashSet();
+        var newTickers = newWallet.Itens.Select(i => i.Stock.Code).ToHashSet();
+
+        var tickersToSell = oldTickers.Except(newTickers).ToList();
+        var tickersToBuy = newTickers.Except(oldTickers).ToList();
+
+        // Get current quotes
+        var quotes = await _context.Quotes
+            .GroupBy(q => q.StockId)
+            .Select(g => g.OrderByDescending(q => q.Date).FirstOrDefault())
+            .ToDictionaryAsync(q => q.StockId, q => q);
+
+        var activeCustomers = await _context.Customers
+            .Include(c => c.Positions)
+                .ThenInclude(p => p.Stock)
+            .Where(c => c.Active)
+            .ToListAsync();
+
+        foreach (var customer in activeCustomers)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                decimal totalSellValue = 0;
+
+                // Sell assets that left the wallet
+                foreach (var ticker in tickersToSell)
+                {
+                    var stock = await _context.Stocks.FirstOrDefaultAsync(s => s.Code == ticker);
+                    if (stock == null) continue;
+
+                    var position = customer.Positions.FirstOrDefault(p => p.StockId == stock.Id);
+                    if (position == null || position.Quantity == 0) continue;
+
+                    var quote = quotes.GetValueOrDefault(stock.Id);
+                    if (quote == null) continue;
+
+                    var sellValue = position.Quantity * quote.ClosePrice;
+                    totalSellValue += sellValue;
+
+                    var order = new Order
+                    {
+                        CustomerId = customer.Id,
+                        StockId = stock.Id,
+                        Date = DateTime.Now,
+                        Type = OrderType.Sale,
+                        Quantity = position.Quantity,
+                        Price = quote.ClosePrice,
+                        Status = StatusOrder.WaitingForExecution
+                    };
+                    _context.Orders.Add(order);
+                }
+
+                // Buy new assets (if any sell value)
+                if (totalSellValue > 0 && tickersToBuy.Any())
+                {
+                    // Calculate total percentage of new assets (those entering)
+                    var totalBuyPercent = tickersToBuy.Sum(t => newWallet.Itens.First(i => i.Stock.Code == t).Weight);
+
+                    foreach (var ticker in tickersToBuy)
+                    {
+                        var item = newWallet.Itens.First(i => i.Stock.Code == ticker);
+                        var stock = item.Stock;
+                        var quote = quotes.GetValueOrDefault(stock.Id);
+                        if (quote == null) continue;
+
+                        var amountToInvest = totalSellValue * (item.Weight / totalBuyPercent);
+                        var quantity = (int)(amountToInvest / quote.ClosePrice);
+                        if (quantity > 0)
+                        {
+                            var order = new Order
+                            {
+                                CustomerId = customer.Id,
+                                StockId = stock.Id,
+                                Date = DateTime.Now,
+                                Type = OrderType.Purchase,
+                                Quantity = quantity,
+                                Price = quote.ClosePrice,
+                                Status = StatusOrder.WaitingForExecution
+                            };
+                            _context.Orders.Add(order);
+                        }
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Error during wallet change rebalance for customer {CustomerId}", customer.Id);
+            }
         }
     }
 }
