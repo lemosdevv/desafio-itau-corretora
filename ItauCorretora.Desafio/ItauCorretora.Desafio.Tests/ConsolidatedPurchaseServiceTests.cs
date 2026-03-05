@@ -86,7 +86,7 @@ private void SeedDatabase()
     var wallet = new RecommendedWallet
     {
         Id = 1,
-        Name = "Cesta Teste",
+        Name = "Test Basket",
         Active = true,
         StartDate = DateTime.Now.AddMonths(-1)
     };

@@ -33,47 +33,47 @@ public abstract class KafkaConsumerBase<T> : BackgroundService where T : class
 {
     if (!_isEnabled)
     {
-        _logger.LogWarning("Kafka consumer desabilitado para o tópico {Topic}", _topic);
+        _logger.LogWarning("Kafka consumer disabled for the topic {Topic}", _topic);
         return;
     }
 
     try
     {
         _consumer.Subscribe(_topic);
-        _logger.LogInformation("Kafka consumer inscrito no tópico {Topic}", _topic);
+        _logger.LogInformation("Kafka consumer subscribed to the topic {Topic}", _topic);
 
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
                 var consumeResult = _consumer.Consume(stoppingToken);
-                _logger.LogInformation("Mensagem recebida do tópico {Topic}...", consumeResult.Topic);
+                _logger.LogInformation("Message received from topic {Topic}...", consumeResult.Topic);
                 await ProcessMessageAsync(consumeResult.Message.Value, stoppingToken);
                 _consumer.Commit(consumeResult);
             }
             catch (OperationCanceledException)
             {
-                _logger.LogInformation("Consumo cancelado para o tópico {Topic}", _topic);
+                _logger.LogInformation("Consumption canceled for the topic {Topic}", _topic);
                 break;
             }
             catch (ConsumeException ex)
             {
-                _logger.LogError(ex, "Erro ao consumir mensagem do tópico {Topic}", _topic);
+                _logger.LogError(ex, "Error occurred while consuming message from topic {Topic}", _topic);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro ao processar mensagem do tópico {Topic}", _topic);
+                _logger.LogError(ex, "Error occurred while processing message from topic {Topic}", _topic);
             }
         }
     }
     catch (Exception ex)
     {
-        _logger.LogError(ex, "Erro fatal no Kafka consumer para o tópico {Topic}", _topic);
+        _logger.LogError(ex, "Fatal error in Kafka consumer for the topic {Topic}", _topic);
     }
     finally
     {
         _consumer?.Close();
-        _logger.LogInformation("Kafka consumer para o tópico {Topic} finalizado.", _topic);
+        _logger.LogInformation("Kafka consumer for the topic {Topic} finalized.", _topic);
     }
 }
 

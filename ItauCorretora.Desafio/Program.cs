@@ -13,12 +13,12 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Configurar DbContext com MySQL
+// Config DbContext with MySQL
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
-// Registrar serviços e workers (já deve ter)
+// Register services and workers
 builder.Services.AddScoped<IPurchaseEngineService, PurchaseEngineService>();
 builder.Services.AddScoped<IRebalancementService, RebalancementService>();
 builder.Services.AddScoped<IConsolidatedPurchaseService, ConsolidatedPurchaseService>();

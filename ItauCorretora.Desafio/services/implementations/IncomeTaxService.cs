@@ -69,12 +69,6 @@ public class IncomeTaxService : IIncomeTaxService
 
         foreach (var sale in sales)
         {
-            // We need the average purchase price to calculate profit.
-            // Assume the customer's position reflects the current average price.
-            // For past sales, we would need history. As a simplification:
-            // We use the position's average price on the sale date.
-            // Since we don't have history, we assume the current average price reflects the cost.
-            // In a real system, more elaborate tracking would be necessary.
             var position = await _context.CustomerPositions
                 .FirstOrDefaultAsync(p => p.CustomerId == customerId && p.StockId == sale.StockId);
 

@@ -86,7 +86,7 @@ public class PurchaseEngineService : IPurchaseEngineService
                 Date = DateTime.Now,
                 Type = TipoMovimento.Debito,
                 Value = totalInvested,
-                Description = "Compra programada de ações"
+                Description = "Scheduled stock purchase"
             };
             _context.AccountMovements.Add(movement);
 

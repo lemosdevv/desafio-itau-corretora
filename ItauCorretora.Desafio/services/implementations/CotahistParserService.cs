@@ -72,11 +72,11 @@ public class CotahistParserService : ICotahistParserService
                         stock = new Stock
                         {
                             Code = stockCode,
-                            Name = stockCode, // perhaps fetch name from another source
-                            Type = "ON" // default
+                            Name = stockCode, 
+                            Type = "ON" 
                         };
                         _context.Stocks.Add(stock);
-                        await _context.SaveChangesAsync(); // save to generate ID
+                        await _context.SaveChangesAsync(); 
                     }
                     stockCache[stockCode] = stock;
                 }
@@ -87,7 +87,6 @@ public class CotahistParserService : ICotahistParserService
 
                 if (existingQuote != null)
                 {
-                    // Update (optional)
                     existingQuote.OpenPrice = open;
                     existingQuote.HighPrice = high;
                     existingQuote.LowPrice = low;

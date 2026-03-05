@@ -16,7 +16,7 @@ public class PurchaseSchedulerWorker : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("PurchaseSchedulerWorker iniciado.");
+        _logger.LogInformation("PurchaseSchedulerWorker started.");
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -34,7 +34,7 @@ public class PurchaseSchedulerWorker : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro no PurchaseSchedulerWorker");
+                _logger.LogError(ex, "Error in PurchaseSchedulerWorker");
             }
 
             await Task.Delay(_checkInterval, stoppingToken);

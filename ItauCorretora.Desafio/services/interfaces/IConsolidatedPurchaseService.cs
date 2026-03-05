@@ -29,7 +29,7 @@ public class OrderSummary
 
 public class OrderDetail
 {
-    public string Tipo { get; set; } = string.Empty; // "LOTE" ou "FRACIONARIO"
+    public string Tipo { get; set; } = string.Empty; 
     public string Ticker { get; set; } = string.Empty;
     public int Quantity { get; set; }
 }

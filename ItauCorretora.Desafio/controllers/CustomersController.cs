@@ -226,7 +226,7 @@ public class CustomersController : ControllerBase
         {
             date = m.Date.ToString("yyyy-MM-dd"),
             amount = m.Value,
-            installment = "1/3" // could be calculated based on date
+            installment = "1/3"
         });
 
         // Get latest quotes for each stock to compute current values

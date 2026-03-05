@@ -18,10 +18,10 @@ public class OrderController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetOrders([FromQuery] int? customerId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
-        // Validação básica
+        // Validation basics
         if (page <= 0) page = 1;
         if (pageSize <= 0) pageSize = 10;
-        if (pageSize > 100) pageSize = 100; // Limite máximo para evitar sobrecarga
+        if (pageSize > 100) pageSize = 100;
 
         var query = _context.Orders
             .Include(o => o.Stock)

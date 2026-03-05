@@ -302,7 +302,7 @@ public class ConsolidatedPurchaseService : IConsolidatedPurchaseService
                         ClienteId = dist.ClientId,
                         Cpf = activeCustomers.First(c => c.Id == dist.ClientId).CPF,
                         Ticker = asset.Ticker,
-                        TipoOperacao = "COMPRA",
+                        TipoOperacao = "BUY",
                         Quantidade = asset.Quantity,
                         PrecoUnitario = order.Price,
                         ValorOperacao = valorOperacao,

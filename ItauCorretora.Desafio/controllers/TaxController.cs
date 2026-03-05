@@ -18,7 +18,7 @@ public class TaxController : ControllerBase
     public async Task<IActionResult> CalculateMonthlyTax([FromQuery] int year, [FromQuery] int month)
     {
         await _taxService.CalculateMonthlyTaxAsync(year, month);
-        return Ok($"Cálculo de IR para {year}-{month} concluído.");
+        return Ok($"Income tax calculation for {year}-{month} completed.");
     }
 
     [HttpPost("calculate/{customerId}")]
