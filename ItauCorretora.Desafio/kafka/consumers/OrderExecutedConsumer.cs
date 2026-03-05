@@ -2,9 +2,6 @@ using System.Text.Json;
 using ItauCorretora.Desafio.Data;
 using ItauCorretora.Desafio.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using static ItauCorretora.Desafio.Kafka.Consumers.OrderExecutedConsumer;
 
 namespace ItauCorretora.Desafio.Kafka.Consumers;
@@ -20,7 +17,7 @@ public class OrderExecutedConsumer : KafkaConsumerBase<OrderExecutedMessage>
         IServiceScopeFactory scopeFactory)
         : base(configuration, logger, "orders-executed")
     {
-        _logger.LogInformation("Inicializando OrderExecutedConsumer...");
+        _logger.LogInformation("Initializing OrderExecutedConsumer...");
         _scopeFactory = scopeFactory;
     }
 
@@ -41,12 +38,12 @@ public class OrderExecutedConsumer : KafkaConsumerBase<OrderExecutedMessage>
             using var scope = _scopeFactory.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-            // Seeking order in all necessary relationships
+            // Seek order with all necessary relationships
             var order = await context.Orders
                 .Include(o => o.Customer)
                 .ThenInclude(c => c.Account)
                 .Include(o => o.Stock)
-                .FirstOrDefaultAsync(o => o.Id == orderExecuted.OrderId);
+                .FirstOrDefaultAsync(o => o.Id == orderExecuted.OrderId, stoppingToken);
 
             if (order == null)
             {
@@ -54,19 +51,26 @@ public class OrderExecutedConsumer : KafkaConsumerBase<OrderExecutedMessage>
                 return;
             }
 
-            // Use transactions to ensure consistency.
+            // If order is a master order (no customer), we cannot process execution
+            if (order.Customer == null)
+            {
+                _logger.LogWarning("Order {OrderId} is a master order and cannot be processed by this consumer", orderExecuted.OrderId);
+                return;
+            }
+
+            // Use transactions to ensure consistency
             await using var transaction = await context.Database.BeginTransactionAsync(stoppingToken);
 
             try
             {
                 // Update order status
                 order.Status = MapStatus(orderExecuted.Status);
-                
-                // If it was partially executed, we keep track of the amount executed.
+
+                // If partially executed, use the actual executed quantity
                 int executedQuantity = orderExecuted.ExecutedQuantity ?? order.Quantity;
                 decimal executedValue = executedQuantity * order.Price;
 
-                // Update customer status
+                // Update customer position
                 var position = await context.CustomerPositions
                     .FirstOrDefaultAsync(p => p.CustomerId == order.CustomerId && p.StockId == order.StockId, stoppingToken);
 
@@ -76,7 +80,7 @@ public class OrderExecutedConsumer : KafkaConsumerBase<OrderExecutedMessage>
                     {
                         position = new CustomerPosition
                         {
-                            CustomerId = order.CustomerId,
+                            CustomerId = order.CustomerId.Value,
                             StockId = order.StockId,
                             Quantity = executedQuantity,
                             AveragePrice = order.Price
@@ -85,13 +89,13 @@ public class OrderExecutedConsumer : KafkaConsumerBase<OrderExecutedMessage>
                     }
                     else
                     {
-                        // Update quantity and average price.
+                        // Update quantity and average price
                         var totalValue = position.Quantity * position.AveragePrice + executedQuantity * order.Price;
                         position.Quantity += executedQuantity;
                         position.AveragePrice = totalValue / position.Quantity;
                     }
 
-                    // If the order was partially executed, we need to adjust the balance (refund the difference)
+                    // If partially executed, refund the difference
                     if (orderExecuted.Status == "PARTIALLY_EXECUTED" && orderExecuted.ExecutedQuantity.HasValue)
                     {
                         var originalTotal = order.Quantity * order.Price;
@@ -101,27 +105,27 @@ public class OrderExecutedConsumer : KafkaConsumerBase<OrderExecutedMessage>
                         if (refund > 0 && order.Customer?.Account != null)
                         {
                             order.Customer.Account.Credit(refund);
-                            
-                            // Record reversal transaction
+
+                            // Record reversal movement
                             var refundMovement = new AccountMovement
                             {
                                 AccountId = order.Customer.Account.Id,
                                 Date = DateTime.Now,
                                 Type = TipoMovimento.Credito,
                                 Value = refund,
-                                Description = $"Partial reversal of the order {order.Id}",
+                                Description = $"Partial reversal of order {order.Id}",
                                 OrderId = order.Id
                             };
                             context.AccountMovements.Add(refundMovement);
                         }
                     }
                 }
-                else // SALE
+                else // Sale
                 {
                     if (position == null)
                     {
-                        _logger.LogWarning("Client {CustomerId} does not have a position for the asset {StockCode} to sell",
-                            order.CustomerId, order.Stock.Code);
+                        _logger.LogWarning("Client {CustomerId} does not have a position for asset {StockCode} to sell",
+                            order.CustomerId, order.Stock!.Code);
                         order.Status = StatusOrder.Error;
                     }
                     else
@@ -129,33 +133,33 @@ public class OrderExecutedConsumer : KafkaConsumerBase<OrderExecutedMessage>
                         if (position.Quantity < executedQuantity)
                         {
                             _logger.LogWarning("Client {CustomerId} tried to sell {ExecutedQuantity} but only has {CurrentQuantity} of {StockCode}",
-                                order.CustomerId, executedQuantity, position.Quantity, order.Stock.Code);
+                                order.CustomerId, executedQuantity, position.Quantity, order.Stock!.Code);
                             order.Status = StatusOrder.Error;
                         }
                         else
                         {
-                            // Reduce the position (average price does not change on sale)
+                            // Reduce position (average price unchanged)
                             position.Quantity -= executedQuantity;
 
-                            // Credit the value to the account
+                            // Credit the account
                             if (order.Customer?.Account != null)
                             {
                                 order.Customer.Account.Credit(executedValue);
 
-                                // Record credit transaction
+                                // Record credit movement
                                 var creditMovement = new AccountMovement
                                 {
                                     AccountId = order.Customer.Account.Id,
                                     Date = DateTime.Now,
                                     Type = TipoMovimento.Credito,
                                     Value = executedValue,
-                                    Description = $"Sale of {executedQuantity} {order.Stock.Code}",
+                                    Description = $"Sale of {executedQuantity} {order.Stock!.Code}",
                                     OrderId = order.Id
                                 };
                                 context.AccountMovements.Add(creditMovement);
                             }
 
-                            // If the position is depleted, we can remove it or keep it with quantity 0
+                            // If position becomes zero, remove it
                             if (position.Quantity == 0)
                             {
                                 context.CustomerPositions.Remove(position);
@@ -173,7 +177,7 @@ public class OrderExecutedConsumer : KafkaConsumerBase<OrderExecutedMessage>
             {
                 await transaction.RollbackAsync(stoppingToken);
                 _logger.LogError(ex, "Error processing order {OrderId}", orderExecuted.OrderId);
-                throw; // Re-throw to prevent the message from being committed
+                throw; // Re-throw to prevent commit
             }
         }
         catch (JsonException ex)
@@ -182,7 +186,7 @@ public class OrderExecutedConsumer : KafkaConsumerBase<OrderExecutedMessage>
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error occurred while processing executed order message");
+            _logger.LogError(ex, "Unexpected error while processing executed order message");
         }
     }
 

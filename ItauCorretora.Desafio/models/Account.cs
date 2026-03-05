@@ -41,5 +41,7 @@ namespace ItauCorretora.Desafio.Models
 
         // Account movements
         public ICollection<AccountMovement> Movements { get; set; } = new List<AccountMovement>();
+
+        public ICollection<Order> Orders { get; set; } = new List<Order>();
     }
 }

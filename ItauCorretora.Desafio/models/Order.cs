@@ -28,8 +28,12 @@ namespace ItauCorretora.Desafio.Models
 
         [Required]
         [ForeignKey("Customer")]
-        public int CustomerId { get; set; }
-        public Customer Customer { get; set; } = null!;
+        public int? CustomerId { get; set; }
+        public Customer? Customer { get; set; } = null!;
+
+        [ForeignKey("Account")]
+        public int? AccountId { get; set; }
+        public Account? Account { get; set; }
 
         [Required]
         [ForeignKey("Stock")]

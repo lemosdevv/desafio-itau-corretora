@@ -1,4 +1,5 @@
 using ItauCorretora.Desafio.Kafka.Producers;
+using ItauCorretora.Desafio.Services.Implementations;
 using ItauCorretora.Desafio.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,11 +11,13 @@ public class PurchaseController : ControllerBase
 {
     private readonly IPurchaseEngineService _purchaseService;
     private readonly IKafkaProducer _kafkaProducer;
+    private readonly IConsolidatedPurchaseService _consolidatedPurchaseService;
 
-    public PurchaseController(IPurchaseEngineService purchaseService, IKafkaProducer kafkaProducer)
+    public PurchaseController(IPurchaseEngineService purchaseService, IKafkaProducer kafkaProducer, IConsolidatedPurchaseService consolidatedPurchaseService)
     {
         _purchaseService = purchaseService;
         _kafkaProducer = kafkaProducer;
+        _consolidatedPurchaseService = consolidatedPurchaseService;
     }
 
     [HttpPost("{customerId}/process")]
@@ -34,9 +37,25 @@ public class PurchaseController : ControllerBase
 
         return Ok(result);
     }
+
+    [HttpPost("execute")]
+    public async Task<IActionResult> ExecutarCompra([FromQuery] DateTime? referenceDate = null)
+    {
+        var result = await _consolidatedPurchaseService.ExecutePurchaseAsync(referenceDate);
+        if (result.Success)
+            return Ok(result);
+        else
+            return BadRequest(result);
+    }
+    
 }
 
 public class PurchaseRequest
 {
     public decimal Amount { get; set; }
+}
+
+public class ExecutePurchaseRequest
+{
+    public DateTime? DataReferencia { get; set; }
 }

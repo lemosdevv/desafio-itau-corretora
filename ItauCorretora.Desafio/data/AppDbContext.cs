@@ -23,6 +23,8 @@ public class AppDbContext : DbContext
     public DbSet<CustomerPosition> CustomerPositions { get; set; }
     public DbSet<IncomeTax> IncomeTaxes { get; set; }
 
+    public DbSet<MasterCustody> MasterCustodies { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Customer -> Account (1:1)
@@ -98,6 +100,25 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Quote>()
             .HasIndex(q => new { q.StockId, q.Date })
             .IsUnique();
+
+        // MasterCustody unique index (ensures there's only one master custody record per stock)
+        modelBuilder.Entity<MasterCustody>()
+            .HasIndex(m => m.StockId)
+            .IsUnique();
+
+        // Order -> Customer (opcional)
+        modelBuilder.Entity<Order>()
+            .HasOne(o => o.Customer)
+            .WithMany(c => c.Orders)
+            .HasForeignKey(o => o.CustomerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Order -> Account (opcional)
+        modelBuilder.Entity<Order>()
+            .HasOne(o => o.Account)
+            .WithMany(a => a.Orders)
+            .HasForeignKey(o => o.AccountId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         base.OnModelCreating(modelBuilder);
     }

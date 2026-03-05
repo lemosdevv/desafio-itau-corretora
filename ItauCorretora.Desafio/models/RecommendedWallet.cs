@@ -19,6 +19,8 @@ namespace ItauCorretora.Desafio.Models
 
         public DateTime? EndDate { get; set; } 
 
+        public bool Active { get; set; } = true;
+
         public ICollection<WalletRecommendedItem> Itens { get; set; } = new List<WalletRecommendedItem>();
     }
 }

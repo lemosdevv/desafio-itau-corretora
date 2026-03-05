@@ -21,6 +21,8 @@ namespace ItauCorretora.Desafio.Models
 
         public DateTime DateRegister { get; set; } = DateTime.Now;
 
+        public bool Active { get; set; } = true;
+
         // 1:1 Account Relationship (a customer has an account)
         public Account? Account { get; set; }
 
@@ -32,5 +34,6 @@ namespace ItauCorretora.Desafio.Models
 
         // 1:N Relationship with TaxesIncome (if keeping historical records)
         public ICollection<IncomeTax> TaxesIncome { get; set; } = new List<IncomeTax>();
+        public decimal ValorMensal { get; internal set; }
     }
 }

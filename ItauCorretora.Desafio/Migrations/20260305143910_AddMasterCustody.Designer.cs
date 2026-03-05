@@ -3,6 +3,7 @@ using System;
 using ItauCorretora.Desafio.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ItauCorretora.Desafio.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260305143910_AddMasterCustody")]
+    partial class AddMasterCustody
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -87,9 +90,6 @@ namespace ItauCorretora.Desafio.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<bool>("Active")
-                        .HasColumnType("tinyint(1)");
-
                     b.Property<string>("CPF")
                         .IsRequired()
                         .HasMaxLength(11)
@@ -102,9 +102,6 @@ namespace ItauCorretora.Desafio.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
-
-                    b.Property<decimal>("ValorMensal")
-                        .HasColumnType("decimal(65,30)");
 
                     b.HasKey("Id");
 
@@ -193,11 +190,7 @@ namespace ItauCorretora.Desafio.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<int?>("AccountId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("CustomerId")
-                        .IsRequired()
+                    b.Property<int>("CustomerId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("Date")
@@ -223,8 +216,6 @@ namespace ItauCorretora.Desafio.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AccountId");
 
                     b.HasIndex("CustomerId");
 
@@ -275,9 +266,6 @@ namespace ItauCorretora.Desafio.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
-
-                    b.Property<bool>("Active")
-                        .HasColumnType("tinyint(1)");
 
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime(6)");
@@ -418,11 +406,6 @@ namespace ItauCorretora.Desafio.Migrations
 
             modelBuilder.Entity("ItauCorretora.Desafio.Models.Order", b =>
                 {
-                    b.HasOne("ItauCorretora.Desafio.Models.Account", "Account")
-                        .WithMany("Orders")
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("ItauCorretora.Desafio.Models.Customer", "Customer")
                         .WithMany("Orders")
                         .HasForeignKey("CustomerId")
@@ -434,8 +417,6 @@ namespace ItauCorretora.Desafio.Migrations
                         .HasForeignKey("StockId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Account");
 
                     b.Navigation("Customer");
 
@@ -475,8 +456,6 @@ namespace ItauCorretora.Desafio.Migrations
             modelBuilder.Entity("ItauCorretora.Desafio.Models.Account", b =>
                 {
                     b.Navigation("Movements");
-
-                    b.Navigation("Orders");
                 });
 
             modelBuilder.Entity("ItauCorretora.Desafio.Models.Customer", b =>
