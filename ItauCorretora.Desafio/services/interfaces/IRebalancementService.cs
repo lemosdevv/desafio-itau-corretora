@@ -4,6 +4,8 @@ public interface IRebalancementService
 {
     Task RebalanceAllAsync();
     Task<RebalancementResult> RebalanceCustomerAsync(int customerId);
+
+    Task RebalanceByWalletChangeAsync(int newWalletId);
 }
 
 public class RebalancementResult
