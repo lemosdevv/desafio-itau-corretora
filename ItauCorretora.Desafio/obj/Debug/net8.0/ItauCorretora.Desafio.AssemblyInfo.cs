@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ItauCorretora.Desafio")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6c875aaa050ec78686c0a1afc06543be71c0eb1a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+098ff81cfef081319381b2c1f2bed07299929414")]
 [assembly: System.Reflection.AssemblyProductAttribute("ItauCorretora.Desafio")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ItauCorretora.Desafio")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
